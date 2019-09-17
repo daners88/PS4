@@ -156,7 +156,9 @@ public class GridPCG : MonoBehaviour
 
     public void SpawnPlayer()
     {
-        GameObject player = Instantiate(playerPrefab, grid.AllSquares[grid.AllSquares.Count - 1].Position + new Vector3Int(2,8,2), Quaternion.identity, grid.transform);
+        Vector3 newPos = new Vector3(grid.AllSquares[0].transform.localScale.x / 2, grid.AllSquares[0].transform.localScale.y + gridSize, grid.AllSquares[0].transform.localScale.z / 2);
+        GameObject player = Instantiate(playerPrefab, grid.AllSquares[grid.AllSquares.Count - 1].Position + newPos, Quaternion.identity, grid.transform);
+        player.transform.localScale = player.transform.localScale / 2;
     }
 
     public GridSquare CreateSquare(Vector3Int pos, int curID)

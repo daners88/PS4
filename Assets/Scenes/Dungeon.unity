@@ -152,9 +152,12 @@ MonoBehaviour:
   grid: {fileID: 0}
   squarePrefab: {fileID: 5242959868406867943, guid: a546789b0b099714bad356d83690a444,
     type: 3}
-  gridSize: 10
+  playerPrefab: {fileID: 5226311181475860281, guid: fb07c509638bb4c4d8b55e5862d83d71,
+    type: 3}
+  gridSize: 50
+  gridRowColSize: 10
   generateRandomSeed: 1
-  seed: 8000
+  seed: 1000
   directions:
   - {x: 1, y: 0, z: 0}
   - {x: 0, y: 0, z: 1}
