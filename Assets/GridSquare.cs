@@ -5,11 +5,27 @@ using UnityEngine;
 public class GridSquare : MonoBehaviour
 {
     [SerializeField] private Vector3Int position = Vector3Int.zero;
-    public GridSquare nextSquare = null;
+    public long nextSquareID = -1;
+    public long prevSquareID = -1;
+    [SerializeField]
+    private long square_id = -1;
+
+    [SerializeField]
+    public List<GameObject> walls = null;
     public Vector3Int Position
     {
         get { return position; }
         set { position = value; }
+    }
+
+    public void SetID(long id)
+    {
+        square_id = id;
+    }
+
+    public long GetID()
+    {
+        return square_id;
     }
 
     [SerializeField] private List<GridSquare> neighbors = null;

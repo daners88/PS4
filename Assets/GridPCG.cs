@@ -29,55 +29,132 @@ public class GridPCG : MonoBehaviour
     {
         int totalSquares = gridHeight * gridWidth;
         List<bool> inTree = new List<bool>();
-        List<GridSquare> mazePath = new List<GridSquare>();
 
-        for(int i = 0; i < totalSquares; i++)
+        for (int i = 0; i < totalSquares; i++)
         {
             inTree.Add(false);
         }
-        mazePath[root] = null;
+        grid.AllSquares[root].nextSquareID = -1;
         inTree[root] = true;
         for (int i = 0; i < totalSquares; i++)
         {
             int temp = i;
-            while(!inTree[temp])
+            while (!inTree[temp])
             {
-                mazePath[temp] = GetRandomSuccessor(temp);
+                long nextId = GetRandomSuccessor(temp);
+                grid.AllSquares[temp].nextSquareID = nextId;
+                temp = (int)nextId;
+            }
+            temp = i;
+            while (!inTree[temp])
+            {
+                inTree[temp] = true;
+                temp = (int)grid.AllSquares[temp].nextSquareID;
+            }
+        }
+        RemoveWalls(root);
+    }
+
+    public void RemoveWalls(int root)
+    {
+        int totalSquares = gridHeight * gridWidth;
+        long prevID = -1;
+        long curID = 0;
+        for (int i = 0; i < totalSquares; i++)
+        {
+            if(curID > 0)
+            {
+                GridSquare curr = grid.AllSquares[(int)curID];
+                curr.prevSquareID = prevID;
+                prevID = curr.GetID();
+                curID = curr.nextSquareID;
+            }
+        }
+
+        for (int i = 0; i < totalSquares; i++)
+        {
+            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() + 1 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() + 1)
+            {
+                grid.AllSquares[i].walls[2].SetActive(false);
+            }
+            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() - 1 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() - 1)
+            {
+                grid.AllSquares[i].walls[3].SetActive(false);
+            }
+            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() + 100 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() + 1000)
+            {
+                grid.AllSquares[i].walls[0].SetActive(false);
+            }
+            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() - 100 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() - 100)
+            {
+                grid.AllSquares[i].walls[1].SetActive(false);
             }
         }
     }
 
-    public GridSquare GetRandomSuccessor(int index)
+    public long GetRandomSuccessor(int index)
     {
         GridSquare currentSquare = grid.AllSquares[index];
 
+        return currentSquare.Neighbors[random.Next(0, currentSquare.Neighbors.Count)].GetID();
     }
 
     public void Build()
     {
-        for(int i = 0; i < gridWidth; i++)
+        if (grid == null)
         {
-            for(int j = 0; j < gridHeight; j++)
+            grid = CreateGrid();
+        }
+
+        if (random == null || generateNewRng)
+        {
+            random = CreateRng();
+            grid.name = $"Dungeon Grid {seed}";
+        }
+        long curID = 0;
+        for (int i = 0; i < gridWidth; i++)
+        {
+            for (int j = 0; j < gridHeight; j++)
             {
-                GridSquare sq = Instantiate(squarePrefab, grid.transform);
-                sq.Position = new Vector3Int(i, 0, j);
-                grid.AddSquare(sq);
+                GridSquare sq = CreateSquare(new Vector3Int(i, 0, j), curID);
+                sq.transform.position = grid.BoardToWorld(new Vector3Int(i, 0, j));
+                sq.gameObject.SetActive(true);
+                curID++;
             }
         }
+        CreateRandomMaze(0);
     }
+
+    //IEnumerator BuildDungeon()
+    //{
+    //    long curID = 0;
+    //    for (int i = 0; i < gridWidth; i++)
+    //    {
+    //        for (int j = 0; j < gridHeight; j++)
+    //        {
+    //            GridSquare sq = CreateSquare(new Vector3Int(i, 0, j), curID);
+    //            sq.transform.position = grid.BoardToWorld(new Vector3Int(i, 0, j));
+    //            sq.gameObject.SetActive(true);
+    //            curID++;
+    //        }
+    //        yield return null;
+    //    }
+    //    CreateRandomMaze(0);
+    //}
 
     public void Clear()
     {
         if (grid != null)
         {
-            Destroy(grid.gameObject);
+            DestroyImmediate(grid.gameObject);
         }
     }
 
-    public GridSquare CreateSquare(Vector3Int pos)
+    public GridSquare CreateSquare(Vector3Int pos, long curID)
     {
         GridSquare sq = Instantiate(squarePrefab, grid.transform);
         sq.Position = pos;
+        sq.SetID(curID);
         grid.AddSquare(sq);
         return sq;
     }
@@ -94,7 +171,7 @@ public class GridPCG : MonoBehaviour
         if (generateRandomSeed)
         {
             if (seedGenerator == null)
-                seed = (int)Time.time*1000;
+                seed = (int)Time.time * 1000;
             else
                 seed = seedGenerator.Next();
         }
