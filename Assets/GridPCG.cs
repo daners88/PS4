@@ -1,16 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GridPCG : MonoBehaviour
 {
     public Grid grid = null;
     public GridSquare squarePrefab = null;
-
-    public int gridWidth = 100;
-    public int gridHeight = 100;
-
-    public bool generateNewRng = false;
+    public GameObject playerPrefab = null;
+    public float gridSize = 1;
+    public int gridRowColSize = 10;
     public bool generateRandomSeed = true;
     public System.Random random = null;
     public System.Random seedGenerator = null;
@@ -27,72 +26,77 @@ public class GridPCG : MonoBehaviour
 
     public void CreateRandomMaze(int root)
     {
-        int totalSquares = gridHeight * gridWidth;
+        int totalSquares = gridRowColSize * gridRowColSize;
+        List<int> next = new List<int>();
         List<bool> inTree = new List<bool>();
 
         for (int i = 0; i < totalSquares; i++)
         {
             inTree.Add(false);
+            next.Add(-1);
         }
-        grid.AllSquares[root].nextSquareID = -1;
+        next[root] = -1;
         inTree[root] = true;
-        for (int i = 0; i < totalSquares; i++)
+        for (int i = 1; i < totalSquares; i++)
         {
-            int temp = i;
-            while (!inTree[temp])
+            int u = i;
+            while (!inTree[u])
             {
-                long nextId = GetRandomSuccessor(temp);
-                grid.AllSquares[temp].nextSquareID = nextId;
-                temp = (int)nextId;
+                next[u] = GetRandomSuccessor(u);
+                u = next[u];
             }
-            temp = i;
-            while (!inTree[temp])
+            u = i;
+            while (!inTree[u])
             {
-                inTree[temp] = true;
-                temp = (int)grid.AllSquares[temp].nextSquareID;
+                inTree[u] = true;
+                u = next[u];
             }
         }
-        RemoveWalls(root);
+        RemoveWalls(next);
     }
 
-    public void RemoveWalls(int root)
+    public void RemoveWalls(List<int> next)
     {
-        int totalSquares = gridHeight * gridWidth;
-        long prevID = -1;
-        long curID = 0;
-        for (int i = 0; i < totalSquares; i++)
+        int totalSquares = gridRowColSize * gridRowColSize;
+        int nextID = -1;
+        for (int i = 1; i < next.Count; i++)
         {
-            if(curID > 0)
-            {
-                GridSquare curr = grid.AllSquares[(int)curID];
-                curr.prevSquareID = prevID;
-                prevID = curr.GetID();
-                curID = curr.nextSquareID;
-            }
+            GridSquare temp = grid.AllSquares[i];
+            nextID = next[i];
+            temp.nextSquareID = nextID;
+            grid.AllSquares[nextID].VisitorIds.Add(temp.GetID());
         }
 
-        for (int i = 0; i < totalSquares; i++)
+        for (int i = 1; i < totalSquares; i++)
         {
-            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() + 1 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() + 1)
-            {
-                grid.AllSquares[i].walls[2].SetActive(false);
-            }
-            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() - 1 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() - 1)
-            {
-                grid.AllSquares[i].walls[3].SetActive(false);
-            }
-            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() + 100 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() + 1000)
+            if (grid.AllSquares[i].Position.z < grid.AllSquares[grid.AllSquares[i].nextSquareID].Position.z)
             {
                 grid.AllSquares[i].walls[0].SetActive(false);
+                grid.AllSquares[grid.AllSquares[i].nextSquareID].walls[2].SetActive(false);
             }
-            if (grid.AllSquares[i].nextSquareID == grid.AllSquares[i].GetID() - 100 || grid.AllSquares[i].prevSquareID == grid.AllSquares[i].GetID() - 100)
+            else if (grid.AllSquares[i].Position.z > grid.AllSquares[grid.AllSquares[i].nextSquareID].Position.z)
+            {
+                grid.AllSquares[i].walls[2].SetActive(false);
+                grid.AllSquares[grid.AllSquares[i].nextSquareID].walls[0].SetActive(false);
+            }
+            else if (grid.AllSquares[i].Position.x < grid.AllSquares[grid.AllSquares[i].nextSquareID].Position.x)
             {
                 grid.AllSquares[i].walls[1].SetActive(false);
+                grid.AllSquares[grid.AllSquares[i].nextSquareID].walls[3].SetActive(false);
+            }
+            else if (grid.AllSquares[i].Position.x > grid.AllSquares[grid.AllSquares[i].nextSquareID].Position.x)
+            {
+                grid.AllSquares[i].walls[3].SetActive(false);
+                grid.AllSquares[grid.AllSquares[i].nextSquareID].walls[1].SetActive(false);
             }
         }
+
+        grid.transform.localScale *= gridSize;
+
+        SpawnPlayer();
     }
 
-    public long GetRandomSuccessor(int index)
+    public int GetRandomSuccessor(int index)
     {
         GridSquare currentSquare = grid.AllSquares[index];
 
@@ -106,15 +110,15 @@ public class GridPCG : MonoBehaviour
             grid = CreateGrid();
         }
 
-        if (random == null || generateNewRng)
+        if (random == null)
         {
             random = CreateRng();
             grid.name = $"Dungeon Grid {seed}";
         }
-        long curID = 0;
-        for (int i = 0; i < gridWidth; i++)
+        int curID = 0;
+        for (int i = 0; i < gridRowColSize; i++)
         {
-            for (int j = 0; j < gridHeight; j++)
+            for (int j = 0; j < gridRowColSize; j++)
             {
                 GridSquare sq = CreateSquare(new Vector3Int(i, 0, j), curID);
                 sq.transform.position = grid.BoardToWorld(new Vector3Int(i, 0, j));
@@ -150,7 +154,12 @@ public class GridPCG : MonoBehaviour
         }
     }
 
-    public GridSquare CreateSquare(Vector3Int pos, long curID)
+    public void SpawnPlayer()
+    {
+        GameObject player = Instantiate(playerPrefab, grid.AllSquares[grid.AllSquares.Count - 1].Position + new Vector3Int(2,8,2), Quaternion.identity, grid.transform);
+    }
+
+    public GridSquare CreateSquare(Vector3Int pos, int curID)
     {
         GridSquare sq = Instantiate(squarePrefab, grid.transform);
         sq.Position = pos;

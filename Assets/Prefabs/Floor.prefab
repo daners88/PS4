@@ -113,10 +113,10 @@ MonoBehaviour:
   prevSquareID: -1
   square_id: -1
   walls:
-  - {fileID: 4042356890224524790}
-  - {fileID: 2990654842005794267}
   - {fileID: 4666130469976237508}
+  - {fileID: 4042356890224524790}
   - {fileID: 2798374271485530342}
+  - {fileID: 2990654842005794267}
   neighbors: []
 --- !u!1 &2798374271485530342
 GameObject:
@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 2573932464879255665}
   - component: {fileID: 7203466371670362313}
   m_Layer: 0
-  m_Name: Wall4
+  m_Name: SWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -145,7 +145,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2798374271485530342}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.003, y: 3.02, z: -0.474}
+  m_LocalPosition: {x: 0, y: 3, z: -0.475}
   m_LocalScale: {x: 1, y: 5, z: 0.05}
   m_Children: []
   m_Father: {fileID: 8941645356108960177}
@@ -222,7 +222,7 @@ GameObject:
   - component: {fileID: 7572386571548112273}
   - component: {fileID: 2170790593471541006}
   m_Layer: 0
-  m_Name: Wall2
+  m_Name: WWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -236,7 +236,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2990654842005794267}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.472, y: 3.02, z: 0}
+  m_LocalPosition: {x: -0.475, y: 3, z: 0}
   m_LocalScale: {x: 0.05, y: 5, z: 1}
   m_Children: []
   m_Father: {fileID: 8941645356108960177}
@@ -313,7 +313,7 @@ GameObject:
   - component: {fileID: 452564988669702368}
   - component: {fileID: 2340575398570783625}
   m_Layer: 0
-  m_Name: Wall1
+  m_Name: EWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -327,7 +327,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4042356890224524790}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.472, y: 3.02, z: 0}
+  m_LocalPosition: {x: 0.475, y: 3, z: 0}
   m_LocalScale: {x: 0.05, y: 5, z: 1}
   m_Children: []
   m_Father: {fileID: 8941645356108960177}
@@ -404,7 +404,7 @@ GameObject:
   - component: {fileID: 3542393874252362087}
   - component: {fileID: 1192983097137080239}
   m_Layer: 0
-  m_Name: Wall3
+  m_Name: NWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -418,7 +418,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4666130469976237508}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.003, y: 3.02, z: 0.474}
+  m_LocalPosition: {x: 0, y: 3, z: 0.475}
   m_LocalScale: {x: 1, y: 5, z: 0.05}
   m_Children: []
   m_Father: {fileID: 8941645356108960177}
