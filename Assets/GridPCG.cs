@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,7 +10,8 @@ public class GridPCG : MonoBehaviour
     public GridSquare squarePrefab = null;
     public GameObject playerPrefab = null;
     public float gridSize = 1;
-    public int gridRowColSize = 10;
+    public int gridHeight = 10;
+    public int gridWidth = 10;
     public bool generateRandomSeed = true;
     public System.Random random = null;
     public System.Random seedGenerator = null;
@@ -26,7 +28,7 @@ public class GridPCG : MonoBehaviour
 
     public void CreateRandomMaze(int root)
     {
-        int totalSquares = gridRowColSize * gridRowColSize;
+        int totalSquares = gridHeight * gridWidth;
         List<int> next = new List<int>();
         List<bool> inTree = new List<bool>();
 
@@ -52,12 +54,11 @@ public class GridPCG : MonoBehaviour
                 u = next[u];
             }
         }
-        RemoveWalls(next);
+        RemoveWalls(totalSquares, next);
     }
 
-    public void RemoveWalls(List<int> next)
+    public void RemoveWalls(int totalSquares, List<int> next)
     {
-        int totalSquares = gridRowColSize * gridRowColSize;
         int nextID = -1;
         for (int i = 1; i < next.Count; i++)
         {
@@ -91,6 +92,8 @@ public class GridPCG : MonoBehaviour
             }
         }
 
+        SpawnRooms(totalSquares);
+
         grid.transform.localScale *= gridSize;
 
         SpawnPlayer();
@@ -101,6 +104,48 @@ public class GridPCG : MonoBehaviour
         GridSquare currentSquare = grid.AllSquares[index];
 
         return currentSquare.Neighbors[random.Next(0, currentSquare.Neighbors.Count)].GetID();
+    }
+
+    public void SpawnRooms(int totalSquares)
+    {
+        int numRoomsToSpawn = random.Next(0, (int)Math.Ceiling(totalSquares * .025));
+
+        for(int i = 0; i < numRoomsToSpawn; i++)
+        {
+            GridSquare startingSpot = grid.AllSquares[random.Next(0, grid.AllSquares.Count)];
+            int roomSize = random.Next(3, (int)Math.Ceiling(totalSquares/numRoomsToSpawn * 0.01) > 3 ? (int)Math.Ceiling(totalSquares / numRoomsToSpawn * 0.01) : 4);
+            HashSet<GridSquare> cellsInRoom = new HashSet<GridSquare>();
+            cellsInRoom = GetRoomCells(startingSpot, roomSize);
+            foreach(var cell in cellsInRoom)
+            {
+                cell.RemoveAllWalls();
+            }
+        }
+    }
+
+    HashSet<GridSquare> GetRoomCells(GridSquare currCell, int remainingSize)
+    {
+        HashSet<GridSquare> cells = new HashSet<GridSquare>();
+        currCell.includedInRoom = true;
+        foreach(var neighbor in currCell.Neighbors)
+        {
+            if(remainingSize > 0)
+            {
+                if(!neighbor.includedInRoom)
+                {
+                    cells.UnionWith(GetRoomCells(neighbor, remainingSize - 1));
+                }
+                else
+                {
+                    cells.Add(neighbor);
+                }
+            }
+            else
+            {
+                cells.Add(neighbor);
+            }
+        }
+        return cells;
     }
 
     public void Build()
@@ -116,9 +161,9 @@ public class GridPCG : MonoBehaviour
             grid.name = $"Dungeon Grid {seed}";
         }
         int curID = 0;
-        for (int i = 0; i < gridRowColSize; i++)
+        for (int i = 0; i < gridWidth; i++)
         {
-            for (int j = 0; j < gridRowColSize; j++)
+            for (int j = 0; j < gridHeight; j++)
             {
                 GridSquare sq = CreateSquare(new Vector3Int(i, 0, j), curID);
                 sq.transform.position = grid.BoardToWorld(new Vector3Int(i, 0, j));

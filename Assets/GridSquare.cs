@@ -8,6 +8,7 @@ public class GridSquare : MonoBehaviour
     public int nextSquareID = -1;
     [SerializeField]
     private int square_id = -1;
+    public bool includedInRoom = false;
 
     [SerializeField]
     public List<GameObject> walls = null;
@@ -16,6 +17,14 @@ public class GridSquare : MonoBehaviour
     {
         get { return position; }
         set { position = value; }
+    }
+
+    public void RemoveAllWalls()
+    {
+        foreach(var wall in walls)
+        {
+            wall.SetActive(false);
+        }
     }
 
     public void SetID(int id)
